@@ -13,12 +13,22 @@ on:
           - 'dev'
           - 'uat'
           - 'staging'
-          - 'qa'
           
+
 concurrency:
   group: deploy
   cancel-in-progress: true
 
+env:
+  
+  
+  # 🔄 AUTOMATIC BRANCH MAPPING LOGIC HERE:
+  CURRENT_BRANCH: >-
+    ${{ 
+      github.event.inputs.environment == 'dev' && 'DEV-en' ||
+      github.event.inputs.environment == 'uat' && 'UAT_' ||
+      github.event.inputs.environment == 'staging' && 'staging_env' 
+    }}
     
 # env:
 #   BASE_DIR: /home/ubuntu/Backend
