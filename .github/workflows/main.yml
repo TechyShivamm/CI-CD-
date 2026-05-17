@@ -1,6 +1,13 @@
 name: Dynamic Environment Deployment
 
+
 on:
+  # 1. NEW: Auto-trigger whenever a commit is pushed to DEV-en
+  push:
+    branches:
+      - 'DEV-en'
+
+  # 2. EXISTING: Manual trigger for all environments
   workflow_dispatch:
     inputs:
       environment:
@@ -14,40 +21,49 @@ on:
 
 jobs:
   deploy:
-    # UPDATED: Pointing to your self-hosted runner
     runs-on: [self-hosted,testing] 
     
-    environment: ${{ github.event.inputs.environment }}
+    # Smart environment context: If it's a push, force 'dev'. Otherwise, use dropdown input.
+    environment: ${{ github.event_name == 'push' && 'dev' || github.event.inputs.environment }}
 
     steps:
-      # Step 1: Map the chosen environment to your actual branch names
-      - name: Set Target Branch
-        id: branch_mapper
+      # Step 1: Handle logic for BOTH auto-triggers and manual triggers
+      - name: Set Target Branch and Environment
+        id: config
         run: |
-          ENV="${{ github.event.inputs.environment }}"
+          EVENT="${{ github.event_name }}"
           
-          if [ "$ENV" = "dev" ]; then
+          # If triggered automatically by a commit...
+          if [ "$EVENT" = "push" ]; then
             echo "branch=DEV-en" >> $GITHUB_OUTPUT
+            echo "target_env=dev" >> $GITHUB_OUTPUT
             
-          elif [ "$ENV" = "uat" ]; then
-            echo "branch=UAT_" >> $GITHUB_OUTPUT
+          # If triggered manually from the dropdown...
+          else
+            ENV="${{ github.event.inputs.environment }}"
+            echo "target_env=$ENV" >> $GITHUB_OUTPUT
             
-          elif [ "$ENV" = "staging" ]; then
-            echo "branch=staging_env" >> $GITHUB_OUTPUT
-            
+            if [ "$ENV" = "dev" ]; then
+              echo "branch=DEV-en" >> $GITHUB_OUTPUT
+            elif [ "$ENV" = "uat" ]; then
+              echo "branch=UAT_" >> $GITHUB_OUTPUT
+            elif [ "$ENV" = "staging" ]; then
+              echo "branch=staging_env" >> $GITHUB_OUTPUT
+            fi
           fi
 
       # Step 2: Automatically checkout the mapped branch
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.branch_mapper.outputs.branch }}
+          ref: ${{ steps.config.outputs.branch }}
 
       # Step 3: Run the rest of your pipeline
       - name: Run Pipeline
         run: |
-          echo "Target Environment: ${{ github.event.inputs.environment }}"
-          echo "Executing code from Branch: ${{ steps.branch_mapper.outputs.branch }}"
+          echo "Pipeline triggered by: ${{ github.event_name }}"
+          echo "Target Environment: ${{ steps.config.outputs.target_env }}"
+          echo "Executing code from Branch: ${{ steps.config.outputs.branch }}"
           # Add your build/deploy scripts below
 
 
