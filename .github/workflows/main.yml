@@ -7,7 +7,7 @@ on:
       environment:
         description: 'Environment to run against'
         required: true
-        # default: 'qa'
+        default: 'qa'
 
 concurrency:
   group: deploy
@@ -24,7 +24,10 @@ jobs:
     name: 🏗️ Setup Workspace
     runs-on: [self-hosted,testing]
     timeout-minutes: 10
-    # steps:
+    steps:
+      - name: Prepare Directories & Sync
+        run: |
+          echo ">>> STARTING STEP 1: SETUP <<<"
     #   - name: Prepare Directories & Sync
     #     run: |
     #       echo ">>> STARTING STEP 1: SETUP <<<"
@@ -110,16 +113,3 @@ jobs:
 #           echo "Recent Logs:"
 #           sudo -u ubuntu pm2 logs server --lines 10 --nostream
 
-#   cleanup:
-#     name: 🧹 Cleanup
-#     needs: [setup, install, deploy, validate]
-#     if: always()
-#     timeout-minutes: 10
-#     runs-on: self-hosted
-#     steps:
-#       - name: Clear Diagnostic Logs
-#         run: |
-#           echo ">>> STARTING STEP 5: CLEANUP <<<"
-#           rm -f /home/ubuntu/actions-runner/_diag/*.log
-#           rm -rf /home/ubuntu/actions-runner/_work/*
-#           echo ">>> CLEANUP FINISHED <<<"
