@@ -1,4 +1,4 @@
-name: Devops_CI_CD-DEV/UAT/Staging 
+name: Devops_CI_CD
 
 on:
   workflow_dispatch:
