@@ -7,17 +7,17 @@ on:
     branches:
       - 'DEV-en'
 
-  # 2. EXISTING: Manual trigger for all environments
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Confirm target environment'
-        required: true
-        type: choice
-        options:
-          - 'dev'
-          - 'uat'
-          - 'staging'
+  # # 2. EXISTING: Manual trigger for all environments
+  # workflow_dispatch:
+  #   inputs:
+  #     environment:
+  #       description: 'Confirm target environment'
+  #       required: true
+  #       type: choice
+  #       options:
+  #         - 'dev'
+  #         - 'uat'
+  #         - 'staging'
 
 jobs:
   deploy:
