@@ -1,5 +1,4 @@
-
-name: Devops_CI_CD-Dev/UAT/Staging
+name: Dynamic Environment Deployment
 
 on:
   workflow_dispatch:
@@ -15,7 +14,8 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # UPDATED: Pointing to your self-hosted runner
+    runs-on: [self-hosted,testing] 
     
     environment: ${{ github.event.inputs.environment }}
 
