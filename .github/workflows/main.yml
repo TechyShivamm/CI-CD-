@@ -5,45 +5,67 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to run against'
+        description: 'Confirm target environment'
         required: true
-        default: 'dev'
         type: choice
         options:
           - 'dev'
           - 'uat'
           - 'staging'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      # Step 1: Map the chosen environment to your actual branch names
+      - name: Set Target Branch
+        id: branch_mapper
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
           
+          if [ "$ENV" = "dev" ]; then
+            echo "branch=DEV-en" >> $GITHUB_OUTPUT
+            
+          elif [ "$ENV" = "uat" ]; then
+            echo "branch=UAT_" >> $GITHUB_OUTPUT
+            
+          elif [ "$ENV" = "staging" ]; then
+            echo "branch=staging_env" >> $GITHUB_OUTPUT
+            
+          fi
 
-concurrency:
-  group: deploy
-  cancel-in-progress: true
+      # Step 2: Automatically checkout the mapped branch
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.branch_mapper.outputs.branch }}
 
-env:
-  
-  
-  # 🔄 AUTOMATIC BRANCH MAPPING LOGIC HERE:
-  CURRENT_BRANCH: >-
-    ${{ 
-      github.event.inputs.environment == 'dev' && 'DEV-en' ||
-      github.event.inputs.environment == 'uat' && 'UAT_' ||
-      github.event.inputs.environment == 'staging' && 'staging_env' 
-    }}
+      # Step 3: Run the rest of your pipeline
+      - name: Run Pipeline
+        run: |
+          echo "Target Environment: ${{ github.event.inputs.environment }}"
+          echo "Executing code from Branch: ${{ steps.branch_mapper.outputs.branch }}"
+          # Add your build/deploy scripts below
+
+
     
 # env:
 #   BASE_DIR: /home/ubuntu/Backend
 #   REPO_DIR: /home/ubuntu/Backend/Smartassist-Backend
 #   REPO_URL: "https://${{ secrets.GH_TOKEN }}@github.com/smartassist-app/Smartassist-Backend.git"
 #   CURRENT_BRANCH: ${{ github.ref_name }}
-jobs:
-  setup:
-    name: 🏗️ Setup Workspace
-    runs-on: [self-hosted,testing]
-    timeout-minutes: 10
-    steps:
-      - name: Prepare Directories & Sync
-        run: |
-          echo ">>> STARTING STEP 1: SETUP <<<"
+# jobs:
+#   setup:
+#     name: 🏗️ Setup Workspace
+#     runs-on: [self-hosted,testing]
+#     timeout-minutes: 10
+#     steps:
+#       - name: Prepare Directories & Sync
+#         run: |
+#           echo ">>> STARTING STEP 1: SETUP <<<"
     #   - name: Prepare Directories & Sync
     #     run: |
     #       echo ">>> STARTING STEP 1: SETUP <<<"
