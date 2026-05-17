@@ -1,1 +1,125 @@
 
+name: Devops_CI_CD-Dev/UAT/Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run against'
+        required: true
+        # default: 'qa'
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+    
+# env:
+#   BASE_DIR: /home/ubuntu/Backend
+#   REPO_DIR: /home/ubuntu/Backend/Smartassist-Backend
+#   REPO_URL: "https://${{ secrets.GH_TOKEN }}@github.com/smartassist-app/Smartassist-Backend.git"
+#   CURRENT_BRANCH: ${{ github.ref_name }}
+jobs:
+  setup:
+    name: 🏗️ Setup Workspace
+    runs-on: [self-hosted,testing]
+    timeout-minutes: 10
+    # steps:
+    #   - name: Prepare Directories & Sync
+    #     run: |
+    #       echo ">>> STARTING STEP 1: SETUP <<<"
+    #       set -e
+                            
+    #       mkdir -p "$BASE_DIR"
+          
+    #       if [ ! -d "$REPO_DIR/.git" ]; then
+    #         echo "Status: Repository not found. Cloning branch $CURRENT_BRANCH from $REPO_URL"
+    #         git clone -b "$CURRENT_BRANCH" "$REPO_URL" "$REPO_DIR"
+    #       else
+    #         echo "Status: Repository exists. Syncing latest code for $CURRENT_BRANCH..."
+    #         cd "$REPO_DIR"
+    #         git fetch origin
+            
+    #         # Switch to branch and reset to match remote exactly
+    #         git checkout -B "$CURRENT_BRANCH" "origin/$CURRENT_BRANCH"
+    #         git reset --hard "origin/$CURRENT_BRANCH"
+    #         git clean -fd
+    #       fi
+    #       echo ">>> SETUP COMPLETE <<<"
+
+#   install:
+#     name: 📦 Install Dependencies
+    # needs: setup
+    # timeout-minutes: 10
+    # runs-on: self-hosted
+    # steps:
+    #   - name: Install Node & PM2
+    #     run: |
+    #       echo ">>> STARTING STEP 2: INSTALL <<<"
+    #       set -e
+    #       cd "$REPO_DIR"
+          
+    #       if ! command -v node &> /dev/null; then
+    #         echo "Action: Installing Node.js..."
+    #         sudo apt-get update > /dev/null
+    #         sudo apt install -y nodejs npm > /dev/null
+    #       fi
+    #       echo "Action: Syncing dependency folder..."
+    #       cp -r /home/ubuntu/.dependency/. "$REPO_DIR"
+          
+    #       echo "Action: Running npm install..."
+    #       sudo npm install -g pm2
+    #       sudo npm install --unsafe-perm > /dev/null 2>&1 
+    #       sudo chown -R ubuntu:ubuntu "$REPO_DIR"/node_modules
+    #       sudo npm install uuid@8.3.2
+    #       echo ">>> INSTALLATION COMPLETE <<<"
+
+#   deploy:
+#     name: 🚀 Restart App
+#     needs: install
+#     timeout-minutes: 10
+#     runs-on: self-hosted
+#     steps:
+#       - name: PM2 Start/Restart
+#         run: |
+#           echo ">>> STARTING STEP 3: DEPLOY <<<"
+#           set -e
+#           cd "$REPO_DIR"
+          
+#           if sudo -u ubuntu pm2 describe server > /dev/null 2>&1; then
+#             echo "Action: Restarting 'server'..."
+#             sudo -u ubuntu pm2 restart server.js
+#           else
+#             echo "Action: Starting 'server' for the first time..."
+#             sudo -u ubuntu pm2 start server.js --name "server"
+#           fi
+#           echo ">>> DEPLOYMENT COMPLETE <<<"
+
+#   validate:
+#     name: 🩺 Health Check
+#     needs: deploy
+#     timeout-minutes: 10
+#     runs-on: self-hosted
+#     steps:
+#       - name: Check Status & Logs
+#         run: |
+#           echo ">>> STARTING STEP 4: VALIDATION <<<"
+#           sudo -u ubuntu pm2 list
+#           echo "Waiting 5 seconds for app to stabilize..."
+#           sleep 5
+#           echo "Recent Logs:"
+#           sudo -u ubuntu pm2 logs server --lines 10 --nostream
+
+#   cleanup:
+#     name: 🧹 Cleanup
+#     needs: [setup, install, deploy, validate]
+#     if: always()
+#     timeout-minutes: 10
+#     runs-on: self-hosted
+#     steps:
+#       - name: Clear Diagnostic Logs
+#         run: |
+#           echo ">>> STARTING STEP 5: CLEANUP <<<"
+#           rm -f /home/ubuntu/actions-runner/_diag/*.log
+#           rm -rf /home/ubuntu/actions-runner/_work/*
+#           echo ">>> CLEANUP FINISHED <<<"
